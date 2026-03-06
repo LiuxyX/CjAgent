@@ -36,3 +36,7 @@
 [target.x86_64-unknown-windows-gnu.bin-dependencies]
   path-option = ["${X86_64_LIBS}", "${X86_64_MACRO_LIBS}"]
   package-option = {}
+
+
+[dependencies]
+agent_vision_connector = { path = "../AgentVisionConnector" }
