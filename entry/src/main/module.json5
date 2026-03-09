@@ -8,6 +8,28 @@
       "phone",
       "tablet"
     ],
+
+    //————————————————————
+    // --- 新增以下权限配置 ---
+    "requestPermissions": [
+      {
+        "name": "ohos.permission.INTERNET"
+      }
+    ],
+
+
+
+
+
+
+
+
+
+
+
+
+
+    //————————————————————————
     "deliveryWithInstall": true,
     "installationFree": false,
     "srcEntry": "ohos_app_cangjie_entry.MyAbilityStage",
