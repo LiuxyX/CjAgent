@@ -1,0 +1,6 @@
+[package]
+cjc-version = "0.53.1"
+description = "跨语言视觉大模型连接组件"
+name = "agent_vision_connector"
+version = "1.0.0"
+output-type = "static"
