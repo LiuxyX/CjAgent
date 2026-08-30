@@ -10,49 +10,74 @@ import ohos.arkui.component.common.TextAlign
 @Entry
 @Component
 class EntryView {
-    @State var welcomeMsg: String = "欢迎使用仓颉智能助手！"
+    @State var welcomeMsg: String = "仓颉智能助手 & 视频播放"
     @State var chatHistory: String = "等待提问..."
     @State var userInput: String = ""
+
+    // 1. 定义视频控制器
+    let videoController: VideoController = VideoController()
+
+    // 2. 引用本地资源 (确保 resources/rawfile 下有 demo.mp4)
+    // 注意：仓颉中引用 rawfile 不需要写文件后缀名
+    @State var videoPath: String = "rawfile/demo.mp4"
+
 
     let agent: ReActAgent = ReActAgent()
 
     func build() {
         Column {
+            // 标题
             Text(this.welcomeMsg)
-                .fontSize(24)
+                .fontSize(22)
                 .fontWeight(FontWeight.Bold)
-                .margin(top: 30, bottom: 20)
+                .margin(top: 20, bottom: 10)
 
+            // --- 视频播放区域 ---
+         Video(
+                src: this.videoPath, // 直接传字符串路径
+                controller: this.videoController
+            )
+            .width(90.percent)
+            .height(200)
+            .autoPlay(true)
+            .controls(true)
+
+
+                .objectFit(ImageFit.Contain)
+                .backgroundColor(Color.Black)
+                .borderRadius(10)
+
+            // --- 聊天历史区域 ---
             Scroll {
                 Text(this.chatHistory)
-                    .fontSize(16) // 稍微调小一点字体，方便看思考过程
+                    .fontSize(14)
                     .padding(15)
                     .width(100.percent)
             }
             .width(90.percent)
-            .height(300) // 增高聊天框以容纳多行思考过程
+            .layoutWeight(1) // 自动分配剩余空间
+            .margin(top: 15)
             .backgroundColor(0xF2F2F2)
             .borderRadius(10)
 
-            TextInput(placeholder: "请输入您的问题（例：查询北京天气）", text: this.userInput)
+            // --- 输入与交互区域 ---
+            TextInput(placeholder: "请输入问题...", text: this.userInput)
                 .width(90.percent)
-                .height(45)
-                .margin(top: 20)
+                .height(40)
+                .margin(top: 10)
                 .onChange({ v: String =>
                     this.userInput = v
                 })
 
             Button("询问 Agent")
-                .margin(top: 15)
+                .width(90.percent)
+                .margin(top: 10, bottom: 20)
                 .onClick({ evt: ClickEvent =>
                     if (this.userInput.trimAscii().isEmpty()) { return }
-
                     let currentQuery = this.userInput
-                    // 初始化聊天框，准备迎接流式状态推送
-                    this.chatHistory = "🙋 用户: ${currentQuery}\n\n🤖 Agent 已启动任务..."
+                    this.chatHistory = "🙋 用户: ${currentQuery}\n\n🤖 Agent 思考中..."
                     this.userInput = ""
 
-                    // 【核心修改】：状态接收改为追加 +=
                     this.agent.run(currentQuery, { statusMsg =>
                         this.chatHistory += statusMsg
                     })
