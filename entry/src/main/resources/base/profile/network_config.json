@@ -1,0 +1,7 @@
+{
+  "network-security-config": {
+    "domain-config": {
+      "cleartextTrafficPermitted": true
+    }
+  }
+}

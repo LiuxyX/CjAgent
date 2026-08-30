@@ -1,5 +1,5 @@
 [package]
-  cjc-version = "0.48.2"
+  cjc-version = "1.1.0"
   compile-option = "--dy-std --cfg=\"${COMPILE_CONDITION_ENTRY}\""
   description = "CangjieUI Application"
   link-option = ""
@@ -37,3 +37,5 @@
   path-option = ["${X86_64_LIBS}", "${X86_64_MACRO_LIBS}"]
   package-option = {}
 
+[dependencies]
+agent_vision_connector = { path = "../AgentVisionConnector" }

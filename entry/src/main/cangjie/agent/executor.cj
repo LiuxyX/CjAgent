@@ -1,5 +1,6 @@
 package ohos_app_cangjie_entry.agent
 import std.collection.*
+import std.time.DateTime
 
 public class ReActAgent {
     let tools = HashMap<String, Tool>()
@@ -7,17 +8,36 @@ public class ReActAgent {
     // 设置最大循环次数，防止 Agent 陷入死循环
     let MAX_STEPS: Int64 = 5 
 
-    public init() {
-        let a = AddTool()
-        let s = SubTool()
-        let w = WeatherTool()
-        tools[a.getName()] = a
-        tools[s.getName()] = s
-        tools[w.getName()] = w
+
+// 把类似这样的参数调大
+
+public init() {
+
+        let v = VisionTool()
+        tools[v.getName()] = v
+
+        let h = HistoryQueryTool()
+        let d = DeviceStatusTool()
+        let r = ReportTool()
+
+        tools[h.getName()] = h
+        tools[d.getName()] = d
+        tools[r.getName()] = r
     }
 
     public func run(query: String, onStatusUpdate: (String) -> Unit): Unit {
-        var systemPrompt = "你是一个智能助手。你可以使用以下工具：\n"
+        // 获取当前真实的系统时间
+        let nowStr = DateTime.now().toString()
+        // 2. 按 "T" 切割，安全提取日期和时间
+        let parts = nowStr.split("T")
+        let todayStr = parts[0] // 拿到 "2026-03-11"
+        let timeStr = parts[1].split(".")[0] // 拿到 "15:30:00"，去掉了毫秒尾巴
+
+
+        var systemPrompt = "你是一个水域监管智能助手。\n"
+        systemPrompt += "【重要时间基准】：今天是 ${todayStr}，当前时间是 ${timeStr}。当用户提到“今天”、“昨天”、“去年同期”等时间词汇时，必须以此时间为基准进行严密推算。\n\n"
+
+        systemPrompt += "你可以使用以下工具：\n"
         for ((_, tool) in tools) {
             systemPrompt += "- ${tool.getName()}: ${tool.desc()}\n"
         }
@@ -53,7 +73,8 @@ public class ReActAgent {
             } else if (response.contains("Final Answer:")) {
                 let finalAns = extractValue(response, "Final Answer:")
                 onStatusUpdate("\n✅ 最终答案: \n${finalAns}")
-            } else {
+            }
+            else {
                 onStatusUpdate("\n⚠️ 模型未按格式输出，原始回复: \n${response}")
             }
         })
@@ -75,13 +96,16 @@ public class ReActAgent {
 
             match (tools.get(toolName)) {
                 case Some(tool) =>
-                    let observation = tool.run(arg)
-                    // 展示观察结果
-                    onStatusUpdate("\n🔍 观察结果: ${observation}")
-                    
-                    // 将结果喂回给 LLM，递归调用 step
-                    let nextPrompt = "${oldPrompt}\n${llmResponse}\nObservation: ${observation}\n"
-                    step(nextPrompt, stepCount + 1, onStatusUpdate)
+                    // 🔥 修改：使用异步回调的方式接收 observation 观察结果
+                    tool.run(arg, { observation =>
+                        // 展示观察结果
+                        onStatusUpdate("\n🔍 观察结果: ${observation}")
+
+                        // 将结果喂回给 LLM，递归调用 step
+                        let nextPrompt = "${oldPrompt}\n${llmResponse}\nObservation: ${observation}\n"
+                        step(nextPrompt, stepCount + 1, onStatusUpdate)
+                    })
+
                 case None =>
                     let errorMsg = "找不到指定的工具：${toolName}"
                     onStatusUpdate("\n❌ ${errorMsg}")
@@ -96,9 +120,20 @@ public class ReActAgent {
     private func extractValue(text: String, key: String): String {
         let index = text.indexOf(key).getOrDefault({ => -1 })
         if (index == -1) { return "" }
+
         let start = index + key.size
         let content = text[start..text.size]
-        // 只提取当前行的内容
+
+        // 🚀 核心修复：如果是提取最终答案，直接返回后面的【所有多行内容】
+        if (key == "Final Answer:") {
+            return content.trimAscii()
+        }
+
+        // 对于 Thought 和 Action，由于它们可能会和其它内容连在一起，保留单行切割机制
         return content.split("\n")[0].trimAscii()
     }
 }
+
+
+
+

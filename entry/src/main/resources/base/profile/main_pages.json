@@ -1,2 +1,7 @@
 {
+  "src": [
+    "index",
+    "page_alert"
+
+  ]
 }

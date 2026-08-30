@@ -1,6 +1,7 @@
 {
   "module": {
     "name": "entry",
+
     "type": "entry",
     "description": "$string:module_desc",
     "mainElement": "EntryAbility",
@@ -8,6 +9,14 @@
       "phone",
       "tablet"
     ],
+    // 👇 ========= 就是加在这里！========= 👇
+    "metadata": [
+      {
+        "name": "ohos.network.security.config",
+        "resource": "$profile:network_config"
+      }
+    ],
+    // 👆 =============================== 👆
 
     //————————————————————
     // --- 新增以下权限配置 ---
@@ -57,3 +66,5 @@
     ]
   }
 }
+
+
